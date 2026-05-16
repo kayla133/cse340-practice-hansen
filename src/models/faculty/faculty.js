@@ -75,34 +75,30 @@ const faculty = {
 };
 
 const getFacultyById = (facultyId) => {
-    // TODO: Look up faculty member by ID, return null if not found
+    // Look up faculty member by ID, return null if not found
     return faculty[facultyId] || null;
 };
 
-const getSortedFaculty = (sortBy) => {
-    // TODO: Validate sortBy parameter (name, department, or title), default to 'name' if invalid
-    const validParameters = ['name', 'department', 'title'];
-    const sortKey = validParameters.includes(sortBy) ? sortBy : 'name';
-    // Create an array of all faculty members
-    const facultyArray = [];
-    for (const key in faculty) {
-        // Add each individual faculty object to the array
-        facultyArray.push({...faculty[key], id: key});
-    }
+const getSortedFaculty = (sortBy = 'name') => {
+    const valid = ['name', 'department', 'title'];
 
-    // Sort the array by the chosen property
+    // force clean input
+    const key = valid.includes(sortBy) ? sortBy : 'name';
+
+    // REQUIRED: convert object → array
+    const facultyArray = Object.values(faculty).map((f, index) => ({
+        id: Object.keys(faculty)[index],
+        ...f
+    }));
+
+    // sort safely
     facultyArray.sort((a, b) => {
-        // Compare the property values
-        if (a[sortBy] < b[sortBy]) {
-            return -1;
-        }
-        if (a[sortBy] > b[sortBy]) {
-            return 1;
-        }
-        return 0; // They are equal
+        const A = String(a[key]).toLowerCase();
+        const B = String(b[key]).toLowerCase();
+
+        return A.localeCompare(B);
     });
 
-    // Return the sorted array
     return facultyArray;
 };
 

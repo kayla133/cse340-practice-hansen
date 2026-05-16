@@ -20,6 +20,9 @@ const getCurrentGreeting = () => {
  * Templates can access these values but are not required to use them.
  */
 const addLocalVariables = (req, res, next) => {
+    // 1. ADD THIS LINE RIGHT HERE TO FIX THE UNDEFINED ERROR PERMANENTLY:
+    res.locals.title = ''; 
+
     // Set current year for use in templates
     res.locals.currentYear = new Date().getFullYear();
 

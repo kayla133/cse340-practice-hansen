@@ -1,3 +1,4 @@
+
 import { Router } from 'express';
 // Create a new router instance
 const router = Router();
@@ -8,6 +9,8 @@ import { catalogPage, courseDetailPage } from './catalog/catalog.js';
 import { homePage, aboutPage, demoPage, testErrorPage } from './index.js';
 // import from faculty page
 import { facultyPage, facultyDetailPage } from './faculty/faculty.js';
+
+
 
 // TODO: Add route definitions
 // Home and basic pages

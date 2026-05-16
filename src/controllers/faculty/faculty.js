@@ -5,32 +5,34 @@
 import { getFacultyById, getSortedFaculty } from '../../models/faculty/faculty.js';
 
 // create a facultyListPage function that renders the faculty list page
+// create a facultyListPage function that renders the faculty list page
 const facultyPage = (req, res) => {
-    const faculty = getSortedFaculty('name');
-// this line is going to call our id that has our faculty name and information.
-// alot like calling json ids
+    const sortBy = req.query.sort || 'name';
+
+    const faculty = getSortedFaculty(sortBy);
+
     res.render('faculty/list', {
-        name: 'Faculty Directory',
-        faculty: faculty
-    })
-}
+        title: 'Faculty Directory',
+        faculty,
+        sortBy
+    });
+};
 
 // create a facultyDetailPage function that uses rout parameters to look up individual faculty (think about looking up courses like we did in catalog)
 const facultyDetailPage = (req, res, next) => {
     const facultyId = req.params.id;
     const instructor = getFacultyById(facultyId);
-    // include proper error handling for invalid faculty IDs
+
     if (!instructor) {
         const err = new Error('Faculty member not found.');
         err.status = 404;
-        return next(err)
+        return next(err);
     }
 
-    // show details of that instructor
     res.render('faculty/detail', {
         title: instructor.name,
-        instructor: instructor
+        instructor
     });
-}
+};
 // export the functions
 export { facultyPage, facultyDetailPage };
