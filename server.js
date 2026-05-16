@@ -58,6 +58,93 @@ app.set('view engine', 'ejs');
 // Tell Express where to find your templates
 app.set('views', path.join(__dirname, 'src/views'));
 
+
+/**
+ * Configure Express middleware
+ */
+
+// Middleware to make NODE_ENV available to all templates
+app.use((req, res, next) => {
+    res.locals.NODE_ENV = NODE_ENV.toLowerCase() || 'production';
+
+    // Continue to the next middleware or route handler
+    next();
+});
+
+app.use((req, res, next) => {
+    // Skip logging for routes that start with /. (like /.well-known/)
+    if (!req.path.startsWith('/.')) {
+        console.log(`${req.method} ${req.url}`);
+    }
+    next(); // Pass control to the next middleware or route
+});
+
+// Middleware to add global data to all templates
+app.use((req, res, next) => {
+    // Add current year for copyright
+    res.locals.currentYear = new Date().getFullYear();
+
+    next();
+});
+
+// Global middleware for time-based greeting
+app.use((req, res, next) => {
+    const currentHour = new Date().getHours();
+
+    /**
+     * Create logic to set different greetings based on the current hour.
+     * Use res.locals.greeting to store the greeting message.
+     * Hint: morning (before 12), afternoon (12-17), evening (after 17)
+     */
+    
+    if (currentHour < 12){
+        res.locals.greeting = "Good Morning!"
+    }
+    else if(currentHour >= 12 && currentHour < 17){
+        res.locals.greeting = "Good Afternoon!"
+    }
+    else(
+        res.locals.greeting = "Good Evening!"
+    )
+
+    next();
+});
+
+// Global middleware for random theme selection
+app.use((req, res, next) => {
+    const themes = ['blue-theme', 'green-theme', 'red-theme'];
+
+    // Your task: Pick a random theme from the array
+    const randomTheme = themes[Math.floor(Math.random() * 3)]
+    res.locals.bodyClass = randomTheme;
+
+    next();
+});
+
+// Global middleware to share query parameters with templates
+app.use((req, res, next) => {
+    // Make req.query available to all templates for debugging and conditional rendering
+    res.locals.queryParams = req.query || {};
+
+    next();
+});
+
+const addDemoHeaders = (req, res, next) => {
+    // adds the header
+    res.setHeader('X-Demo-Page', 'true')
+    // adds the other header
+    res.setHeader('X-Middleware-Demo', 'Hello from the route-specific middleware!')
+
+    next();
+};
+
+app.get('/demo', addDemoHeaders, (req, res) => {
+    res.render('demo', {
+        title: 'Middleware Demo Page'
+    });
+});
+
+
 /**
  * Routes
  */
@@ -127,12 +214,16 @@ app.get('/catalog/:courseId', (req, res, next) => {
     });
 });
 
+
+
 // Test route for 500 errors
 app.get('/test-error', (req, res, next) => {
     const err = new Error('This is a test error');
     err.status = 500;
     next(err);
 });
+
+
 
 // Catch-all route for 404 errors
 app.use((req, res, next) => {
