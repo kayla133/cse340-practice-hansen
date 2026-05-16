@@ -1,0 +1,42 @@
+<%- include('partials/header') %>
+<main>
+    <!-- Header Block mimicking the course layout structure -->
+    <div class="course-header">
+        <h1><%= instructor.name %></h1>
+        <p class="course-meta"><%= instructor.title %> • <%= instructor.department %></p>
+    </div>
+
+    <!-- Details Block mimicking the section list layout structure -->
+    <div class="sections">
+        <div class="sections-header">
+            <h2>Contact & Office Information</h2>
+        </div>
+
+        <div class="section-list">
+            <div class="section-card">
+                <div class="section-room">
+                    <strong>Office Location:</strong> <%= instructor.office %>
+                </div>
+            </div>
+            
+            <div class="section-card">
+                <div class="section-time">
+                    <strong>Phone Number:</strong> <%= instructor.phone %>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <div class="section-professor">
+                    <strong>Email Address:</strong> 
+                    <a href="mailto:<%= instructor.email %>"><%= instructor.email %></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Footer -->
+    <div class="navigation">
+        <p><a href="/faculty">&larr; Back to Faculty Directory</a></p>
+    </div>
+</main>
+<%- include('partials/footer') %>
