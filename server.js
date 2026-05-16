@@ -69,9 +69,6 @@ app.get('/about', (req, res) => {
     res.render('about', { title: 'About Me' });
 });
 
-app.get('/products', (req, res) => {
-    res.render('products', { title: 'Our Products' });
-});
 
 app.get('/student', (req, res) => {
     res.render('student', {
