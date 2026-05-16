@@ -2,230 +2,45 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const app = express();
-
-const name = process.env.NAME;
-const NODE_ENV = process.env.NODE_ENV || 'production';
-const PORT = process.env.PORT || 3000;
-
-// Fix __dirname in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Course data - place this after imports, before routes
-const courses = {
-    'CS121': {
-        id: 'CS121',
-        title: 'Introduction to Programming',
-        description: 'Learn programming fundamentals using JavaScript and basic web development concepts.',
-        credits: 3,
-        sections: [
-            { time: '9:00 AM', room: 'STC 392', professor: 'Brother Jack' },
-            { time: '2:00 PM', room: 'STC 394', professor: 'Sister Enkey' },
-            { time: '11:00 AM', room: 'STC 390', professor: 'Brother Keers' }
-        ]
-    },
-    'MATH110': {
-        id: 'MATH110',
-        title: 'College Algebra',
-        description: 'Fundamental algebraic concepts including functions, graphing, and problem solving.',
-        credits: 4,
-        sections: [
-            { time: '8:00 AM', room: 'MC 301', professor: 'Sister Anderson' },
-            { time: '1:00 PM', room: 'MC 305', professor: 'Brother Miller' },
-            { time: '3:00 PM', room: 'MC 307', professor: 'Brother Thompson' }
-        ]
-    },
-    'ENG101': {
-        id: 'ENG101',
-        title: 'Academic Writing',
-        description: 'Develop writing skills for academic and professional communication.',
-        credits: 3,
-        sections: [
-            { time: '10:00 AM', room: 'GEB 201', professor: 'Sister Anderson' },
-            { time: '12:00 PM', room: 'GEB 205', professor: 'Brother Davis' },
-            { time: '4:00 PM', room: 'GEB 203', professor: 'Sister Enkey' }
-        ]
-    }
-};
-
-app.use(express.static(path.join(__dirname, 'src/public')));
-
-
-// Set EJS as the templating engine
-app.set('view engine', 'ejs');
-
-// Tell Express where to find your templates
-app.set('views', path.join(__dirname, 'src/views'));
-
+// Import MVC components
+import routes from './src/controllers/routes.js';
+import { addLocalVariables } from './src/middleware/global.js';
 
 /**
- * Configure Express middleware
+ * Server configuration
  */
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
+const PORT = process.env.PORT || 3000;
 
-// Middleware to make NODE_ENV available to all templates
-app.use((req, res, next) => {
-    res.locals.NODE_ENV = NODE_ENV.toLowerCase() || 'production';
+/**
+ * Setup Express Server
+ */
+const app = express();
 
-    // Continue to the next middleware or route handler
-    next();
-});
+/**
+ * Configure Express
+ */
+app.use(express.static(path.join(__dirname, 'public')));
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'src/views'));
 
-app.use((req, res, next) => {
-    // Skip logging for routes that start with /. (like /.well-known/)
-    if (!req.path.startsWith('/.')) {
-        console.log(`${req.method} ${req.url}`);
-    }
-    next(); // Pass control to the next middleware or route
-});
-
-// Middleware to add global data to all templates
-app.use((req, res, next) => {
-    // Add current year for copyright
-    res.locals.currentYear = new Date().getFullYear();
-
-    next();
-});
-
-// Global middleware for time-based greeting
-app.use((req, res, next) => {
-    const currentHour = new Date().getHours();
-
-    /**
-     * Create logic to set different greetings based on the current hour.
-     * Use res.locals.greeting to store the greeting message.
-     * Hint: morning (before 12), afternoon (12-17), evening (after 17)
-     */
-    
-    if (currentHour < 12){
-        res.locals.greeting = "Good Morning!"
-    }
-    else if(currentHour >= 12 && currentHour < 17){
-        res.locals.greeting = "Good Afternoon!"
-    }
-    else(
-        res.locals.greeting = "Good Evening!"
-    )
-
-    next();
-});
-
-// Global middleware for random theme selection
-app.use((req, res, next) => {
-    const themes = ['blue-theme', 'green-theme', 'red-theme'];
-
-    // Your task: Pick a random theme from the array
-    const randomTheme = themes[Math.floor(Math.random() * 3)]
-    res.locals.bodyClass = randomTheme;
-
-    next();
-});
-
-// Global middleware to share query parameters with templates
-app.use((req, res, next) => {
-    // Make req.query available to all templates for debugging and conditional rendering
-    res.locals.queryParams = req.query || {};
-
-    next();
-});
-
-const addDemoHeaders = (req, res, next) => {
-    // adds the header
-    res.setHeader('X-Demo-Page', 'true')
-    // adds the other header
-    res.setHeader('X-Middleware-Demo', 'Hello from the route-specific middleware!')
-
-    next();
-};
-
-app.get('/demo', addDemoHeaders, (req, res) => {
-    res.render('demo', {
-        title: 'Middleware Demo Page'
-    });
-});
-
+/**
+ * Global Middleware
+ */
+app.use(addLocalVariables);
 
 /**
  * Routes
  */
-app.get('/', (req, res) => {
-    res.render('home', { title: 'Welcome Home' });
-});
+app.use('/', routes);
 
-app.get('/about', (req, res) => {
-    res.render('about', { title: 'About Me' });
-});
+/**
+ * Error Handling
+ */
 
-
-app.get('/student', (req, res) => {
-    res.render('student', {
-        name: 'John Doe',
-        id: '12345',
-        email: 'john@example.com',
-        address: '123 Main St'
-    });
-});
-
-// Course catalog list page
-app.get('/catalog', (req, res) => {
-    res.render('catalog', {
-        title: 'Course Catalog',
-        courses: courses
-    });
-});
-
-// Enhanced course detail route with sorting
-app.get('/catalog/:courseId', (req, res, next) => {
-    const courseId = req.params.courseId;
-    const course = courses[courseId];
-
-    if (!course) {
-        const err = new Error(`Course ${courseId} not found`);
-        err.status = 404;
-        return next(err);
-    }
-
-    // Get sort parameter (default to 'time')
-    const sortBy = req.query.sort || 'time';
-
-    // Create a copy of sections to sort
-    let sortedSections = [...course.sections];
-
-    // Sort based on the parameter
-    switch (sortBy) {
-        case 'professor':
-            sortedSections.sort((a, b) => a.professor.localeCompare(b.professor));
-            break;
-        case 'room':
-            sortedSections.sort((a, b) => a.room.localeCompare(b.room));
-            break;
-        case 'time':
-        default:
-            // Keep original time order as default
-            break;
-    }
-
-    console.log(`Viewing course: ${courseId}, sorted by: ${sortBy}`);
-
-    res.render('course-detail', {
-        title: `${course.id} - ${course.title}`,
-        course: { ...course, sections: sortedSections },
-        currentSort: sortBy
-    });
-});
-
-
-
-// Test route for 500 errors
-app.get('/test-error', (req, res, next) => {
-    const err = new Error('This is a test error');
-    err.status = 500;
-    next(err);
-});
-
-
-
-// Catch-all route for 404 errors
+// 404 handler
 app.use((req, res, next) => {
     const err = new Error('Page Not Found');
     err.status = 404;
@@ -262,7 +77,31 @@ app.use((err, req, res, next) => {
     }
 });
 
-// Start server
+/**
+ * Start WebSocket Server in Development Mode; used for live reloading
+ */
+if (NODE_ENV.includes('dev')) {
+    const ws = await import('ws');
+
+    try {
+        const wsPort = parseInt(PORT) + 1;
+        const wsServer = new ws.WebSocketServer({ port: wsPort });
+
+        wsServer.on('listening', () => {
+            console.log(`WebSocket server is running on port ${wsPort}`);
+        });
+
+        wsServer.on('error', (error) => {
+            console.error('WebSocket server error:', error);
+        });
+    } catch (error) {
+        console.error('Failed to start WebSocket server:', error);
+    }
+}
+
+/**
+ * Start Server
+ */
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server is running on http://127.0.0.1:${PORT}`);
 });
