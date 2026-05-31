@@ -44,7 +44,7 @@ const setHeadAssetsFunctionality = (res) => {
  */
 const addLocalVariables = (req, res, next) => {
     // 1. ADD THIS LINE RIGHT HERE TO FIX THE UNDEFINED ERROR PERMANENTLY:
-    res.locals.title = ''; 
+    res.locals.title = '';
 
     // Set current year for use in templates
     res.locals.currentYear = new Date().getFullYear();
@@ -64,6 +64,12 @@ const addLocalVariables = (req, res, next) => {
     res.locals.bodyClass = randomTheme;
 
     setHeadAssetsFunctionality(res);
+
+    // Convenience variable for UI state based on session state
+    res.locals.isLoggedIn = false;
+    if (req.session && req.session.user) {
+        res.locals.isLoggedIn = true;
+    }
 
     // Continue to the next middleware or route handler
     next();

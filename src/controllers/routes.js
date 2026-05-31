@@ -5,6 +5,9 @@ import { homePage, aboutPage, demoPage, testErrorPage } from './index.js';
 import { facultyPage, facultyDetailPage } from './faculty/faculty.js';
 import contactRoutes from './forms/contact.js';
 import registrationRoutes from './forms/registration.js';
+import loginRoutes from './forms/login.js';
+import { processLogout, showDashboard } from './forms/login.js';
+import { requireLogin } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -15,6 +18,21 @@ router.use('/catalog', (req, res, next) => {
 
 router.use('/faculty', (req, res, next) => {
     res.addStyle('<link rel="stylesheet" href="/css/faculty.css">');
+    next();
+});
+
+router.use('/contact', (req, res, next) => {
+    res.addStyle('<link rel="stylesheet" href="/css/contact.css">');
+    next();
+});
+
+router.use('/register', (req, res, next) => {
+    res.addStyle('<link rel="stylesheet" href="/css/registration.css">');
+    next();
+});
+
+router.use('/login', (req, res, next) => {
+    res.addStyle('<link rel="stylesheet" href="/css/login.css">');
     next();
 });
 
@@ -29,15 +47,12 @@ router.get('/faculty/:facultySlug', facultyDetailPage);
 
 router.get('/demo', addDemoHeaders, demoPage);
 router.get('/test-error', testErrorPage);
-// Contact form routes
-router.use('/contact', contactRoutes);
 
-// Add registration-specific styles to all registration routes
-router.use('/register', (req, res, next) => {
-    res.addStyle('<link rel="stylesheet" href="/css/registration.css">');
-    next();
-});
-// Registration routes
+router.use('/contact', contactRoutes);
 router.use('/register', registrationRoutes);
+router.use('/login', loginRoutes);
+
+router.get('/logout', processLogout);
+router.get('/dashboard', requireLogin, showDashboard);
 
 export default router;
