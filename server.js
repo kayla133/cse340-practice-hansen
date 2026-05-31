@@ -30,6 +30,15 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src/views'));
 
 /**
+ * Configure Express
+ */
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({ extended: true })); // 👈 add this
+app.use(express.json());                          // 👈 and this
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'src/views'));
+
+/**
  * Global Middleware
  */
 app.use(addLocalVariables);

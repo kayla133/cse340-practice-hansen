@@ -3,6 +3,7 @@ import { addDemoHeaders } from '../middleware/demo/headers.js';
 import { catalogPage, courseDetailPage } from './catalog/catalog.js';
 import { homePage, aboutPage, demoPage, testErrorPage } from './index.js';
 import { facultyPage, facultyDetailPage } from './faculty/faculty.js';
+import contactRoutes from './forms/contact.js';
 
 const router = Router();
 
@@ -27,5 +28,7 @@ router.get('/faculty/:facultySlug', facultyDetailPage);
 
 router.get('/demo', addDemoHeaders, demoPage);
 router.get('/test-error', testErrorPage);
+// Contact form routes
+router.use('/contact', contactRoutes);
 
 export default router;
