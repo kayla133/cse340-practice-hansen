@@ -24,7 +24,9 @@ const showLoginForm = (req, res) => {
 const processLogin = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        console.error('Validation errors:', errors.array());
+        errors.array().forEach(error => {
+            req.flash('error', error.msg);
+        });
         return res.redirect('/login');
     }
 
@@ -33,21 +35,23 @@ const processLogin = async (req, res) => {
     try {
         const user = await findUserByEmail(email);
         if (!user) {
-            console.log('User not found');
+            req.flash('error', 'Invalid email or password');
             return res.redirect('/login');
         }
 
         const passwordMatch = await verifyPassword(password, user.password);
         if (!passwordMatch) {
-            console.log('Invalid password');
+            req.flash('error', 'Invalid email or password');
             return res.redirect('/login');
         }
 
         delete user.password;
         req.session.user = user;
+        req.flash('success', `Welcome back, ${user.name}!`);
         res.redirect('/dashboard');
     } catch (error) {
         console.error('Error during login:', error);
+        req.flash('error', 'Something went wrong. Please try again later.');
         res.redirect('/login');
     }
 };
